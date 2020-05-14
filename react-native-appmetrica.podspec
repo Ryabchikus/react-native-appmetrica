@@ -19,6 +19,11 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,swift}"
   s.requires_arc = true
 
+  s.weak_frameworks        = 'YandexMobileMetrica'
+  s.pod_target_xcconfig    = {
+    'FRAMEWORK_SEARCH_PATHS' => '"$(PODS_ROOT)/YandexMobileMetrica/Static/**"',
+  }
+
   s.dependency "React"
   # ...
   # s.dependency "..."
