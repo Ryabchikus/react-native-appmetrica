@@ -199,7 +199,7 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
             if(userProfile.getUserProfileUpdates().size() > 0) {
                 YandexMetrica.reportUserProfile(userProfile);
 
-                promise.resolve(userProfileParam);
+                promise.resolve(true);
             } else {
                 promise.reject("-102", "Valid keys not found");
             }
