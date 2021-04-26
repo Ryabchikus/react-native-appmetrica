@@ -52,4 +52,13 @@ export default {
     setUserProfileID(userProfileId: string) {
         AppMetrica.setUserProfileID(userProfileId);
     },
+
+    /**
+     * Report User Profile
+     * @param {string} userProfileId
+     * @param {any} userProfile
+     */
+     reportUserProfile(userProfileId: string, userProfile: any) {
+        AppMetrica.setUserProfileID(userProfileId);
+    },
 };
