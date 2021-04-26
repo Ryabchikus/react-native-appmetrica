@@ -59,6 +59,6 @@ export default {
      * @param {any} userProfile
      */
      async reportUserProfile(userProfileId: string, userProfile: any) {
-        return await AppMetrica.setUserProfileID(userProfileId);
+        return await AppMetrica.reportUserProfile(userProfileId, userProfile);
     },
 };
