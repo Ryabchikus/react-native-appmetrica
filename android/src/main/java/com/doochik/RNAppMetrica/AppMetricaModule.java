@@ -149,22 +149,22 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
                     }
                     case "gender": {
                         String genderProp = userProfileParam.getString(key);
-                        UserProfileUpdate gender = null;
 
-                        if(genderProp == "male") {
-                            gender = Attribute.gender().withValue(GenderAttribute.Gender.MALE);
-                        } else if(genderProp == "female") {
-                            gender = Attribute.gender().withValue(GenderAttribute.Gender.FEMALE);
+                        if(genderProp.equalsIgnoreCase("male")) {
+                            UserProfileUpdate gender = Attribute.gender().withValue(GenderAttribute.Gender.MALE);
+                            userProfileBuilder.apply(gender);
+                        } else if(genderProp.equalsIgnoreCase("female")) {
+                            UserProfileUpdate gender = Attribute.gender().withValue(GenderAttribute.Gender.FEMALE);
+                            userProfileBuilder.apply(gender);
                         } else {
-                            gender = Attribute.gender().withValue(GenderAttribute.Gender.OTHER);
+                            UserProfileUpdate gender = Attribute.gender().withValue(GenderAttribute.Gender.OTHER);
+                            userProfileBuilder.apply(gender);
                         }
-
-                        userProfileBuilder.apply(gender);
 
                         break;
                     }
                     case "birthDate": {
-                        UserProfileUpdate birthDate = Attribute.birthDate().withBirthDate(userProfileParam.getInt(key));
+                        UserProfileUpdate birthDate = Attribute.birthDate().withAge(userProfileParam.getInt(key));
                         userProfileBuilder.apply(birthDate);
                         break;
                     }
