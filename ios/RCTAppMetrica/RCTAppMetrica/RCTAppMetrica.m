@@ -103,6 +103,10 @@ RCT_EXPORT_METHOD(reportUserProfile:(NSString *)userProfileID
                         customAttribute = [[YMMProfileAttribute customNumber:key] withValue:value.intValue];
                     }
                 }
+
+                if (customAttribute != NULL) {
+                    [profile apply:customAttribute];
+                }
             }
         }
         
