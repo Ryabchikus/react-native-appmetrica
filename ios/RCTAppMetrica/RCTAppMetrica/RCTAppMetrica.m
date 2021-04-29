@@ -97,7 +97,7 @@ RCT_EXPORT_METHOD(reportUserProfile:(NSString *)userProfileID
                     NSNumber *value = [userProfileParam valueForKey:key];
                     
                     if (([value isEqual:[NSNumber numberWithBool:YES]] || [value isEqual:[NSNumber numberWithBool:NO]])
-                        && value.intValue && value.intValue >= 0 && value.intValue <= 1) {
+                        && value.intValue >= 0 && value.intValue <= 1) {
                         customAttribute = [[YMMProfileAttribute customBool:key] withValue:value.boolValue];
                     } else {
                         customAttribute = [[YMMProfileAttribute customNumber:key] withValue:value.intValue];
