@@ -25,7 +25,6 @@ Pod::Spec.new do |s|
   }
 
   s.dependency "React"
-  # ...
-  # s.dependency "..."
+  s.dependency 'YandexMobileMetrica'
 end
 
