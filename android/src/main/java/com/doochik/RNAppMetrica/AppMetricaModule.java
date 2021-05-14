@@ -1,7 +1,10 @@
 package com.doochik.RNAppMetrica;
 
+import android.content.Intent;
 import android.app.Activity;
 import android.app.Application;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.util.Log;
 
@@ -13,7 +16,6 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
 import java.lang.Exception;
-
 import org.json.JSONObject;
 
 import com.facebook.react.bridge.ReadableType;
@@ -36,6 +38,18 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
         return ModuleName;
     }
 
+
+    public static void reportAppOpen(@NonNull Intent intent) {
+        YandexMetrica.reportAppOpen(intent);
+    }
+
+    public static void reportAppOpen(@NonNull Activity activity) {
+        YandexMetrica.reportAppOpen(activity);
+    }
+
+    public static void reportAppOpen(@NonNull String deeplink) {
+        YandexMetrica.reportAppOpen(deeplink);
+    }
 
     @ReactMethod
     public void activateWithApiKey(String key) {
@@ -89,7 +103,7 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
     }
 
     private String convertReadableMapToJson(final ReadableMap readableMap) {
-		ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
         JSONObject json = new JSONObject();
 
         try {
