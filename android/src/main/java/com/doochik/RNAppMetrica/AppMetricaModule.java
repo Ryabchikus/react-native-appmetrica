@@ -28,9 +28,13 @@ import com.yandex.metrica.profile.UserProfileUpdate;
 
 public class AppMetricaModule extends ReactContextBaseJavaModule {
     final static String ModuleName = "AppMetrica";
+    static ReactApplicationContext reactApplicationContext;
+    static ReadableMap activateParams = null;
+    static String activateKey = null;
 
     public AppMetricaModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        reactApplicationContext = reactContext;
     }
 
     @Override
@@ -40,19 +44,66 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
 
 
     public static void reportAppOpen(@NonNull Intent intent) {
-        YandexMetrica.reportAppOpen(intent);
+        if (activateMetrics()) {
+            YandexMetrica.reportAppOpen(intent);
+        }
     }
 
     public static void reportAppOpen(@NonNull Activity activity) {
-        YandexMetrica.reportAppOpen(activity);
+        if (activateMetrics()) {
+            YandexMetrica.reportAppOpen(activity);
+        }
     }
 
     public static void reportAppOpen(@NonNull String deeplink) {
-        YandexMetrica.reportAppOpen(deeplink);
+        if (activateMetrics()) {
+            YandexMetrica.reportAppOpen(deeplink);
+        }
+    }
+
+    private static boolean activateMetrics() {
+        if (activateParams != null) {
+            staticActivateWithConfig(activateParams);
+            return true;
+        } else if (activateKey != null) {
+            staticActivateWithApiKey(activateKey);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void staticActivateWithApiKey(String key) {
+        activateKey = key;
+        YandexMetricaConfig.Builder configBuilder = YandexMetricaConfig.newConfigBuilder(key);
+        YandexMetrica.activate(reactApplicationContext.getApplicationContext(), configBuilder.build());
+        Activity activity = reactApplicationContext.getCurrentActivity();
+        if (activity != null) {
+            Application application = activity.getApplication();
+            YandexMetrica.enableActivityAutoTracking(application);
+        }
+    }
+
+    private static void staticActivateWithConfig(ReadableMap params) {
+        activateParams = params;
+        YandexMetricaConfig.Builder configBuilder = YandexMetricaConfig.newConfigBuilder(params.getString("apiKey"));
+        if (params.hasKey("sessionTimeout")) {
+            configBuilder.withSessionTimeout(params.getInt("sessionTimeout"));
+        }
+        if (params.hasKey("firstActivationAsUpdate")) {
+            configBuilder.handleFirstActivationAsUpdate(params.getBoolean("firstActivationAsUpdate"));
+        }
+        YandexMetrica.activate(reactApplicationContext.getApplicationContext(), configBuilder.build());
+        Activity activity = reactApplicationContext.getCurrentActivity();
+        if (activity != null) {
+            Application application = activity.getApplication();
+            YandexMetrica.enableActivityAutoTracking(application);
+        }
     }
 
     @ReactMethod
     public void activateWithApiKey(String key) {
+        activateKey = key;
         YandexMetricaConfig.Builder configBuilder = YandexMetricaConfig.newConfigBuilder(key);
         YandexMetrica.activate(getReactApplicationContext().getApplicationContext(), configBuilder.build());
         Activity activity = getCurrentActivity();
@@ -64,6 +115,7 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void activateWithConfig(ReadableMap params) {
+        activateParams = params;
         YandexMetricaConfig.Builder configBuilder = YandexMetricaConfig.newConfigBuilder(params.getString("apiKey"));
         if (params.hasKey("sessionTimeout")) {
             configBuilder.withSessionTimeout(params.getInt("sessionTimeout"));
@@ -103,7 +155,7 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
     }
 
     private String convertReadableMapToJson(final ReadableMap readableMap) {
-        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+		ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
         JSONObject json = new JSONObject();
 
         try {
