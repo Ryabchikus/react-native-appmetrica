@@ -60,6 +60,12 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
             YandexMetrica.reportAppOpen(deeplink);
         }
     }
+	
+    public static void reportReferralUrl(@NonNull String deeplink) {
+        if (activateMetrics()) {
+            YandexMetrica.reportReferralUrl(deeplink);
+        }
+    }
 
     private static boolean activateMetrics() {
         if (activateParams != null) {
