@@ -9,22 +9,26 @@ import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.lang.Exception;
-import org.json.JSONObject;
 
-import com.facebook.react.bridge.ReadableType;
+import org.json.JSONObject;
+import org.json.JSONException;
+
 import com.yandex.metrica.YandexMetrica;
 import com.yandex.metrica.YandexMetricaConfig;
 import com.yandex.metrica.profile.Attribute;
 import com.yandex.metrica.profile.GenderAttribute;
 import com.yandex.metrica.profile.UserProfile;
 import com.yandex.metrica.profile.UserProfileUpdate;
+import com.yandex.metrica.DeferredDeeplinkListener;
 
 public class AppMetricaModule extends ReactContextBaseJavaModule {
     final static String ModuleName = "AppMetrica";
@@ -276,5 +280,39 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
                 promise.reject("-102", "Valid keys not found");
             }
         }
+    }
+
+    @ReactMethod
+    public void getDeferredDeeplink() {
+        YandexMetrica.requestDeferredDeeplink(new DeferredDeeplinkListener() {
+            @Override
+            public void onDeeplinkLoaded(String link) {
+                try {
+                    JSONObject payload = new JSONObject();
+                    payload.put("deeplink", link);
+                    sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(Error error, String referrer) {
+                try {
+                    JSONObject payload = new JSONObject();
+                    payload.put("error", error.toString());
+                    payload.put("link", referrer);
+                    sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private void sendEvent(ReactApplicationContext reactContext, String eventName, Object params) {
+        reactContext
+            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+            .emit(eventName, params);
     }
 }

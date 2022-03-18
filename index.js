@@ -1,7 +1,9 @@
 // @flow
 
-import { NativeModules } from 'react-native';
+import { NativeEventEmitter, NativeModules } from 'react-native';
 const { AppMetrica } = NativeModules;
+
+const appMetricaEventEmitter = new NativeEventEmitter(AppMetrica);
 
 type ActivationConfig = {
     apiKey: string,
@@ -60,5 +62,27 @@ export default {
      */
      async reportUserProfile(userProfileId: string, userProfile: any) {
         return await AppMetrica.reportUserProfile(userProfileId, userProfile);
+    },
+
+    /**
+     * Set callback function for deeplink data
+     * Must called after activateWithApiKey() or activateWithConfig()
+     * @param {function} callback function to recieve deeplink after SDK init
+     * @returns {function} event listener remover
+     */
+     getDeeplink(callback) {
+         // add listner to events from java side....
+        const listener = appMetricaEventEmitter.addListener('yandexMetricaDeeplink', (deeplinkState) => {
+            if (callback && typeof callback === typeof Function) {
+                callback(JSON.parse(deeplinkState));
+            }
+        });
+        // ...then call getting method to start event mechanism
+        AppMetrica.getDeferredDeeplink();
+
+        // unregister listener (suppose should be called from componentWillUnmount() )
+        return function remove() {
+            listener.remove();
+        };
     },
 };
