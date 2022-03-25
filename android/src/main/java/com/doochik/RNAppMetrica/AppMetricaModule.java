@@ -18,6 +18,7 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.lang.Exception;
+//import java.util.Map;
 
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -29,12 +30,14 @@ import com.yandex.metrica.profile.GenderAttribute;
 import com.yandex.metrica.profile.UserProfile;
 import com.yandex.metrica.profile.UserProfileUpdate;
 import com.yandex.metrica.DeferredDeeplinkListener;
+//import com.yandex.metrica.DeferredDeeplinkParametersListener;
 
 public class AppMetricaModule extends ReactContextBaseJavaModule {
     final static String ModuleName = "AppMetrica";
     static ReactApplicationContext reactApplicationContext;
     static ReadableMap activateParams = null;
     static String activateKey = null;
+    static Boolean isActive = false;
 
     public AppMetricaModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -45,7 +48,6 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
     public String getName() {
         return ModuleName;
     }
-
 
     public static void reportAppOpen(@NonNull Intent intent) {
         if (activateMetrics()) {
@@ -59,12 +61,13 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
         }
     }
 
+    @ReactMethod
     public static void reportAppOpen(@NonNull String deeplink) {
         if (activateMetrics()) {
             YandexMetrica.reportAppOpen(deeplink);
         }
     }
-	
+
     public static void reportReferralUrl(@NonNull String deeplink) {
         if (activateMetrics()) {
             YandexMetrica.reportReferralUrl(deeplink);
@@ -74,9 +77,11 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
     private static boolean activateMetrics() {
         if (activateParams != null) {
             staticActivateWithConfig(activateParams);
+            isActive = true;
             return true;
         } else if (activateKey != null) {
             staticActivateWithApiKey(activateKey);
+            isActive = true;
             return true;
         }
 
@@ -165,7 +170,7 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
     }
 
     private String convertReadableMapToJson(final ReadableMap readableMap) {
-		ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
+        ReadableMapKeySetIterator iterator = readableMap.keySetIterator();
         JSONObject json = new JSONObject();
 
         try {
@@ -284,35 +289,62 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getDeferredDeeplink() {
-        YandexMetrica.requestDeferredDeeplink(new DeferredDeeplinkListener() {
-            @Override
-            public void onDeeplinkLoaded(String link) {
-                try {
-                    JSONObject payload = new JSONObject();
-                    payload.put("deeplink", link);
-                    sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
+        if (isActive) {
+            YandexMetrica.requestDeferredDeeplink(new DeferredDeeplinkListener() {
+                @Override
+                public void onDeeplinkLoaded(String link) {
+                    try {
+                        JSONObject payload = new JSONObject();
+                        payload.put("deeplink", link);
+                        sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
 
-            @Override
-            public void onError(Error error, String referrer) {
-                try {
-                    JSONObject payload = new JSONObject();
-                    payload.put("error", error.toString());
-                    payload.put("link", referrer);
-                    sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                @Override
+                public void onError(Error error, String referrer) {
+                    try {
+                        JSONObject payload = new JSONObject();
+                        payload.put("error", error.toString());
+                        payload.put("link", referrer);
+                        sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
-    private void sendEvent(ReactApplicationContext reactContext, String eventName, Object params) {
+//    @ReactMethod
+//    public void getDeferredDeeplinkParams() {
+//        if (isActive) {
+//            YandexMetrica.requestDeferredDeeplinkParameters(new DeferredDeeplinkParametersListener() {
+//                @Override
+//                public void onParametersLoaded(Map<String, String> parameters) {
+//                    String payload = convertReadableMapToJson((ReadableMap) parameters);
+//                    sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload);
+//                }
+//
+//                @Override
+//                public void onError(Error error, String referrer) {
+//                    try {
+//                        JSONObject payload = new JSONObject();
+//                        payload.put("error", error.toString());
+//                        payload.put("link", referrer);
+//                        sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
+//        }
+//    }
+
+    private void sendEvent(@NonNull ReactApplicationContext reactContext, @NonNull String eventName, Object params) {
         reactContext
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-            .emit(eventName, params);
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(eventName, params);
     }
 }

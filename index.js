@@ -85,4 +85,33 @@ export default {
             listener.remove();
         };
     },
+
+    reportAppOpen(deeplink: string) {
+        AppMetrica.reportAppOpen(deeplink);
+    },
+
+    /**
+     * Set callback function for deeplink params
+     * Must called after activateWithApiKey() or activateWithConfig()
+     * @param {function} callback function to recieve deeplink after SDK init
+     * @returns {function} event listener remover
+     */
+    // FIXME: ye;yj видимо объединить в один метод, который сначала пытается получить 
+    // параметры диплинка, а в случае неудачи запрашивает просто диплинк
+    // getDeeplinkParams(callback) { 
+    //     // add listner to events from java side....
+    //     const listener = appMetricaEventEmitter.addListener('yandexMetricaDeeplink', (deeplinkParams) => {
+    //         if (callback && typeof callback === typeof Function) {
+    //             callback(JSON.parse(deeplinkParams));
+    //         }
+    //     });
+    //     // ...then call getting method to start event mechanism
+    //     AppMetrica.getDeferredDeeplinkParams();
+   
+    //     // unregister listener (suppose should be called from componentWillUnmount() )
+    //     return function remove() {
+    //        listener.remove();
+    //     };
+    // },
+
 };
