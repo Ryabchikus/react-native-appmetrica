@@ -3,8 +3,6 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
 const { AppMetrica } = NativeModules;
 
-const appMetricaEventEmitter = new NativeEventEmitter(AppMetrica);
-
 type ActivationConfig = {
     apiKey: string,
     sessionTimeout?: number,
@@ -71,6 +69,7 @@ export default {
      * @returns {function} event listener remover
      */
      getDeeplink(callback) {
+        const appMetricaEventEmitter = new NativeEventEmitter(AppMetrica);
          // add listner to events from java side....
         const listener = appMetricaEventEmitter.addListener('yandexMetricaDeeplink', (deeplinkState) => {
             if (callback && typeof callback === typeof Function) {
