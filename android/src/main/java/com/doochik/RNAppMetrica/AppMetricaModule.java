@@ -37,7 +37,6 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
     static ReactApplicationContext reactApplicationContext;
     static ReadableMap activateParams = null;
     static String activateKey = null;
-    static Boolean isActive = false;
 
     public AppMetricaModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -77,11 +76,9 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
     private static boolean activateMetrics() {
         if (activateParams != null) {
             staticActivateWithConfig(activateParams);
-            isActive = true;
             return true;
         } else if (activateKey != null) {
             staticActivateWithApiKey(activateKey);
-            isActive = true;
             return true;
         }
 
@@ -157,16 +154,24 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void reportEvent(String message, @Nullable ReadableMap params) {
-        if (params != null) {
-            YandexMetrica.reportEvent(message, convertReadableMapToJson(params));
-        } else {
-            YandexMetrica.reportEvent(message);
+        try {
+            if (params != null) {
+                YandexMetrica.reportEvent(message, convertReadableMapToJson(params));
+            } else {
+                YandexMetrica.reportEvent(message);
+            }
+        } catch (Throwable error) {
+            Log.d(ModuleName, "reportEvent fail: " + error.toString());
         }
     }
 
     @ReactMethod
     public void setUserProfileID(String profileID) {
-        YandexMetrica.setUserProfileID(profileID);
+        try {
+            YandexMetrica.setUserProfileID(profileID);
+        } catch (Throwable error) {
+            Log.d(ModuleName, "setUserProfileID fail: " + error.toString());
+        }
     }
 
     private String convertReadableMapToJson(final ReadableMap readableMap) {
@@ -289,7 +294,7 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getDeferredDeeplink() {
-        if (isActive) {
+        try {
             YandexMetrica.requestDeferredDeeplink(new DeferredDeeplinkListener() {
                 @Override
                 public void onDeeplinkLoaded(String link) {
@@ -297,8 +302,9 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
                         JSONObject payload = new JSONObject();
                         payload.put("deeplink", link);
                         sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    } catch (JSONException ex) {
+                        Log.d(ModuleName, "getDeferredDeeplink onDeeplinkLoaded fail: " + ex);
+                        ex.printStackTrace();
                     }
                 }
 
@@ -309,11 +315,14 @@ public class AppMetricaModule extends ReactContextBaseJavaModule {
                         payload.put("error", error.toString());
                         payload.put("link", referrer);
                         sendEvent(reactApplicationContext, "yandexMetricaDeeplink", payload.toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    } catch (JSONException ex) {
+                        Log.d(ModuleName, "getDeferredDeeplink onError fail: " + ex);
+                        ex.printStackTrace();
                     }
                 }
             });
+        } catch (Exception e) {
+            Log.d(ModuleName, "getDeferredDeeplink fail: " + e);
         }
     }
 
